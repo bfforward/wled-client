@@ -1,0 +1,23 @@
+{
+  "name": "wled-client",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "docs": "npx typedoc src/index.ts"
+  },
+  "keywords": [],
+  "author": "Tanner Satchwell <me@tannersatch.com>",
+  "license": "MIT",
+  "repository": "github:bfforward/wled-client",
+  "type": "module",
+  "devDependencies": {
+    "typedoc": "^0.26.10",
+    "typescript": "^5.6.3"
+  },
+  "dependencies": {
+    "axios": "^1.7.7",
+    "axios-retry": "^4.5.0"
+  }
+}
