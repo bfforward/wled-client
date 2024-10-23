@@ -51,3 +51,9 @@ export type WLEDState = {
   rmcpal    : boolean;                     // Remove last custom palette if set to true. Not included in state response. (available since 0.14.0)
   np        : boolean;                     // Advance to the next preset in a playlist if set to true. Not included in state response. (available since 0.15)
 };
+
+/* -------------------------------------------------------------------------- */
+/*                              WLEDUdatableState                             */
+/* -------------------------------------------------------------------------- */
+export type WLEDUpdatableState = PartialDeep<WLEDState>;
+export type WLEDMockState = PartialDeep<WLEDState>;

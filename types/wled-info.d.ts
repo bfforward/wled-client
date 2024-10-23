@@ -66,3 +66,8 @@ export type WLEDInfo = {
   mac     : string;             // The hexadecimal hardware MAC address of the light, lowercase and without colons.
   ip      : string;             // The IP address of this instance. Empty string if not connected. (since 0.13.0)
 };
+
+/* -------------------------------------------------------------------------- */
+/*                                WLEDMockInfo                                */
+/* -------------------------------------------------------------------------- */
+export type WLEDMockInfo = PartialDeep<WLEDInfo>;
