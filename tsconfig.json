@@ -8,6 +8,9 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "ESNext",
+    "types": [
+      "@types/node"
+    ],
   },
   "include": [
     "src/**/*"

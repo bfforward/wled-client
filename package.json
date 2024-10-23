@@ -1,6 +1,6 @@
 {
   "name": "@bfforward/wled-client",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "This package is a work in progress, and not yet complete. The README will be updated when it is ready for use.",
   "main": "dist/index.js",
   "scripts": {
