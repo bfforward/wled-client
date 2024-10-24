@@ -6,3 +6,8 @@ export type ClientConstructor = {
   ssl?: boolean;
   port?: number;
 };
+
+/* -------------------------------------------------------------------------- */
+/*                                ClientStatus                                */
+/* -------------------------------------------------------------------------- */
+export type ClientStatus = "connected" | "disconnected" | "failed";

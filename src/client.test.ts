@@ -66,11 +66,25 @@ describe("WLED Client", () => {
       palettes: [],
     };
     mock.onGet("/").reply(200, mockAll);
-    await wledClient.init();
+    const result = await wledClient.init();
+    expect(result).toBe("connected");
     expect(wledClient.info).toEqual(mockAll.info);
     expect(wledClient.state).toEqual(mockAll.state);
     expect(wledClient.effects).toEqual(mockAll.effects);
     expect(wledClient.palettes).toEqual(mockAll.palettes);
+  });
+
+  test("should return connected if already connected", async () => {
+    mock.onGet("/").reply(200, {});
+    wledClient.status = "connected";
+    const result = await wledClient.init();
+    expect(result).toBe("connected");
+  });
+
+  test("should return failed if init fails to get data", async () => {
+    mock.onGet("/").reply(404);
+    const result = await wledClient.init();
+    expect(result).toBe("failed");
   });
 
   test("should fetch info", async () => {

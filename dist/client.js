@@ -2,6 +2,7 @@ import axios from "axios";
 import axiosRetry from "axios-retry";
 class client {
     axiosInstance;
+    status = 'disconnected';
     info = {};
     state = {};
     effects = [];
@@ -13,7 +14,18 @@ class client {
         axiosRetry(this.axiosInstance, { retries: 3 });
     }
     async init() {
-        await this.getAll();
+        try {
+            if (this.status === 'connected') {
+                return Promise.resolve(this.status);
+            }
+            await this.getAll();
+            this.status = 'connected';
+            return Promise.resolve(this.status);
+        }
+        catch (error) {
+            this.status = 'failed';
+            return Promise.resolve(this.status);
+        }
     }
     async getAll(config) {
         try {

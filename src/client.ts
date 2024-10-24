@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
-import { ClientConstructor } from "../types/client";
+import { ClientConstructor, ClientStatus } from "../types/client";
 import axiosRetry from "axios-retry";
 import { WLEDJSONAll } from "../types/wled-all";
 import { WLEDInfo } from "../types/wled-info";
@@ -9,6 +9,7 @@ import { WLEDPalettes } from "../types/wled-palettes";
 
 class client {
   private axiosInstance: AxiosInstance;
+  public status: ClientStatus = 'disconnected';
   public info: WLEDInfo | {} = {};
   public state: WLEDState | {} = {};
   public effects: WLEDEffects | [] = [];
@@ -21,8 +22,18 @@ class client {
     axiosRetry(this.axiosInstance, { retries: 3 });
   }
 
-  public async init(): Promise<void> {
-    await this.getAll();
+  public async init(): Promise<ClientStatus> {
+    try {
+      if (this.status === 'connected') {
+        return Promise.resolve(this.status);
+      }
+      await this.getAll();
+      this.status = 'connected';
+      return Promise.resolve(this.status);
+    } catch (error) {
+      this.status = 'failed';
+      return Promise.resolve(this.status);
+    }
   }
 
   public async getAll(config?: AxiosRequestConfig): Promise<WLEDJSONAll> {
