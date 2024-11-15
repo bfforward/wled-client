@@ -100,6 +100,8 @@ class client extends EventEmitter {
           "Content-Type": "multipart/form-data",
         },
       });
+      await this.getInfo();
+      this.emit("infoChange");
     } catch (error) {
       console.error("Error renaming:", error);
     }
