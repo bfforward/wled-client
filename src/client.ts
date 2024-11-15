@@ -9,21 +9,21 @@ import { WLEDPalettes } from "../types/wled-palettes";
 import EventEmitter from "events";
 
 class client extends EventEmitter {
-  private axiosInstance: AxiosInstance;
+  private _baseUrl: string;
+  private _axiosInstance: AxiosInstance;
   private _status: ClientStatus = "disconnected";
-  private _info: WLEDInfo | {} = {};
-  private _state: WLEDState | {} = {};
-  private _effects: WLEDEffects | [] = [];
-  private _palettes: WLEDPalettes | [] = [];
+  private _info: WLEDInfo | null = null;
+  private _state: WLEDState | null = null;
+  private _effects: WLEDEffects | null = null;
+  private _palettes: WLEDPalettes | null = null;
 
   constructor({ baseUrl, ssl = false, port = 80 }: ClientOptions) {
     super();
-    this.axiosInstance = axios.create({
-      baseURL: `${ssl ? "https" : "http"}://${baseUrl}:${
-        port
-      }/json`,
+    this._baseUrl = `${ssl ? "https" : "http"}://${baseUrl}:${port}`;
+    this._axiosInstance = axios.create({
+      baseURL: `${ssl ? "https" : "http"}://${baseUrl}:${port}/json`,
     });
-    axiosRetry(this.axiosInstance, { retries: 3 });
+    axiosRetry(this._axiosInstance, { retries: 3 });
   }
 
   /* -------------------------------------------------------------------------- */
@@ -57,10 +57,8 @@ class client extends EventEmitter {
   /* -------------------------------------------------------------------------- */
   public async getAll(config?: AxiosRequestConfig) {
     try {
-      const response: AxiosResponse<WLEDJSONAll> = await this.axiosInstance.get(
-        "/",
-        config
-      );
+      const response: AxiosResponse<WLEDJSONAll> =
+        await this._axiosInstance.get("/", config);
       this._info = response.data.info;
       this._state = response.data.state;
       this._effects = response.data.effects;
@@ -80,7 +78,7 @@ class client extends EventEmitter {
   /* -------------------------------------------------------------------------- */
   public async getInfo(config?: AxiosRequestConfig) {
     try {
-      const response: AxiosResponse<WLEDInfo> = await this.axiosInstance.get(
+      const response: AxiosResponse<WLEDInfo> = await this._axiosInstance.get(
         "/info",
         config
       );
@@ -89,6 +87,21 @@ class client extends EventEmitter {
     } catch (error) {
       this.handleError(error);
       throw error;
+    }
+  }
+
+  public async rename(newName: string) {
+    const url = `${this._baseUrl}/settings/ui`;
+    const formData = new FormData();
+    formData.append("DS", newName);
+    try {
+      await axios.post(url, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+    } catch (error) {
+      console.error("Error renaming:", error);
     }
   }
 
@@ -101,7 +114,7 @@ class client extends EventEmitter {
   /* -------------------------------------------------------------------------- */
   public async getState(config?: AxiosRequestConfig) {
     try {
-      const response: AxiosResponse<WLEDState> = await this.axiosInstance.get(
+      const response: AxiosResponse<WLEDState> = await this._axiosInstance.get(
         "/state",
         config
       );
@@ -118,7 +131,7 @@ class client extends EventEmitter {
     config?: AxiosRequestConfig
   ) {
     try {
-      const response: AxiosResponse<WLEDState> = await this.axiosInstance.post(
+      const response: AxiosResponse<WLEDState> = await this._axiosInstance.post(
         "/state",
         newState,
         config
@@ -141,10 +154,8 @@ class client extends EventEmitter {
   /* -------------------------------------------------------------------------- */
   public async getEffects(config?: AxiosRequestConfig) {
     try {
-      const response: AxiosResponse<WLEDEffects> = await this.axiosInstance.get(
-        "/eff",
-        config
-      );
+      const response: AxiosResponse<WLEDEffects> =
+        await this._axiosInstance.get("/eff", config);
       this._effects = response.data;
       this.emit("effectsChange");
     } catch (error) {
@@ -163,7 +174,7 @@ class client extends EventEmitter {
   public async getPalettes(config?: AxiosRequestConfig) {
     try {
       const response: AxiosResponse<WLEDPalettes> =
-        await this.axiosInstance.get("/pal", config);
+        await this._axiosInstance.get("/pal", config);
       this._palettes = response.data;
       this.emit("palettesChange");
     } catch (error) {
