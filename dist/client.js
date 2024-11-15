@@ -2,18 +2,20 @@ import axios from "axios";
 import axiosRetry from "axios-retry";
 import EventEmitter from "events";
 class client extends EventEmitter {
-    axiosInstance;
+    _baseUrl;
+    _axiosInstance;
     _status = "disconnected";
-    _info = {};
-    _state = {};
-    _effects = [];
-    _palettes = [];
+    _info = null;
+    _state = null;
+    _effects = null;
+    _palettes = null;
     constructor({ baseUrl, ssl = false, port = 80 }) {
         super();
-        this.axiosInstance = axios.create({
+        this._baseUrl = `${ssl ? "https" : "http"}://${baseUrl}:${port}`;
+        this._axiosInstance = axios.create({
             baseURL: `${ssl ? "https" : "http"}://${baseUrl}:${port}/json`,
         });
-        axiosRetry(this.axiosInstance, { retries: 3 });
+        axiosRetry(this._axiosInstance, { retries: 3 });
     }
     /* -------------------------------------------------------------------------- */
     /*                                 CONNECTION                                 */
@@ -44,7 +46,7 @@ class client extends EventEmitter {
     /* -------------------------------------------------------------------------- */
     async getAll(config) {
         try {
-            const response = await this.axiosInstance.get("/", config);
+            const response = await this._axiosInstance.get("/", config);
             this._info = response.data.info;
             this._state = response.data.state;
             this._effects = response.data.effects;
@@ -64,13 +66,28 @@ class client extends EventEmitter {
     /* -------------------------------------------------------------------------- */
     async getInfo(config) {
         try {
-            const response = await this.axiosInstance.get("/info", config);
+            const response = await this._axiosInstance.get("/info", config);
             this._info = response.data;
             this.emit("infoChange");
         }
         catch (error) {
             this.handleError(error);
             throw error;
+        }
+    }
+    async rename(newName) {
+        const url = `${this._baseUrl}/settings/ui`;
+        const formData = new FormData();
+        formData.append("DS", newName);
+        try {
+            await axios.post(url, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+        }
+        catch (error) {
+            console.error("Error renaming:", error);
         }
     }
     get info() {
@@ -81,7 +98,7 @@ class client extends EventEmitter {
     /* -------------------------------------------------------------------------- */
     async getState(config) {
         try {
-            const response = await this.axiosInstance.get("/state", config);
+            const response = await this._axiosInstance.get("/state", config);
             this._state = response.data;
             this.emit("stateChange");
         }
@@ -92,7 +109,7 @@ class client extends EventEmitter {
     }
     async setState(newState, config) {
         try {
-            const response = await this.axiosInstance.post("/state", newState, config);
+            const response = await this._axiosInstance.post("/state", newState, config);
             const updatedState = { ...this._state, ...newState };
             this._state = updatedState;
             this.emit("stateChange");
@@ -110,7 +127,7 @@ class client extends EventEmitter {
     /* -------------------------------------------------------------------------- */
     async getEffects(config) {
         try {
-            const response = await this.axiosInstance.get("/eff", config);
+            const response = await this._axiosInstance.get("/eff", config);
             this._effects = response.data;
             this.emit("effectsChange");
         }
@@ -127,7 +144,7 @@ class client extends EventEmitter {
     /* -------------------------------------------------------------------------- */
     async getPalettes(config) {
         try {
-            const response = await this.axiosInstance.get("/pal", config);
+            const response = await this._axiosInstance.get("/pal", config);
             this._palettes = response.data;
             this.emit("palettesChange");
         }
