@@ -1,25 +1,31 @@
 import { AxiosRequestConfig } from "axios";
-import { ClientConstructor, ClientStatus } from "../types/client";
-import { WLEDJSONAll } from "../types/wled-all";
+import { ClientOptions, ClientStatus } from "../types/client";
 import { WLEDInfo } from "../types/wled-info";
 import { WLEDState, WLEDUpdatableState } from "../types/wled-state";
 import { WLEDEffects } from "../types/wled-effects";
 import { WLEDPalettes } from "../types/wled-palettes";
-declare class client {
+import EventEmitter from "events";
+declare class client extends EventEmitter {
     private axiosInstance;
-    status: ClientStatus;
-    info: WLEDInfo | {};
-    state: WLEDState | {};
-    effects: WLEDEffects | [];
-    palettes: WLEDPalettes | [];
-    constructor({ baseUrl, ssl, port }: ClientConstructor);
-    init(): Promise<ClientStatus>;
-    getAll(config?: AxiosRequestConfig): Promise<WLEDJSONAll>;
-    getInfo(config?: AxiosRequestConfig): Promise<WLEDInfo>;
-    getState(config?: AxiosRequestConfig): Promise<WLEDState>;
-    setState(newState: WLEDUpdatableState, config?: AxiosRequestConfig): Promise<WLEDState>;
-    getEffects(config?: AxiosRequestConfig): Promise<WLEDEffects>;
-    getPalettes(config?: AxiosRequestConfig): Promise<WLEDPalettes>;
+    private _status;
+    private _info;
+    private _state;
+    private _effects;
+    private _palettes;
+    constructor({ baseUrl, ssl, port }: ClientOptions);
+    connect(): Promise<void>;
+    disconnect(): Promise<void>;
+    get status(): ClientStatus;
+    getAll(config?: AxiosRequestConfig): Promise<void>;
+    getInfo(config?: AxiosRequestConfig): Promise<void>;
+    get info(): {} | WLEDInfo;
+    getState(config?: AxiosRequestConfig): Promise<void>;
+    setState(newState: WLEDUpdatableState, config?: AxiosRequestConfig): Promise<void>;
+    get state(): {} | WLEDState;
+    getEffects(config?: AxiosRequestConfig): Promise<void>;
+    get effects(): WLEDEffects | [];
+    getPalettes(config?: AxiosRequestConfig): Promise<void>;
+    get palettes(): [] | WLEDPalettes;
     private handleError;
 }
 export default client;

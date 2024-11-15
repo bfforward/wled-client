@@ -1,6 +1,6 @@
 {
   "name": "@bfforward/wled-client",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "description": "This package is a work in progress, and not yet complete. The README will be updated when it is ready for use.",
   "main": "dist/index.js",
   "scripts": {
@@ -19,6 +19,7 @@
   "type": "module",
   "devDependencies": {
     "@types/jest": "^29.5.14",
+    "@types/react": "^18.3.12",
     "axios-mock-adapter": "^2.1.0",
     "jest": "^29.7.0",
     "ts-jest": "^29.2.5",
@@ -28,7 +29,8 @@
   },
   "dependencies": {
     "axios": "^1.7.7",
-    "axios-retry": "^4.5.0"
+    "axios-retry": "^4.5.0",
+    "events": "^3.3.0"
   },
   "bugs": {
     "url": "https://github.com/bfforward/wled-client/issues"

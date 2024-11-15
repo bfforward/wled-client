@@ -1,111 +1,184 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
-import { ClientConstructor, ClientStatus } from "../types/client";
+import { ClientOptions, ClientStatus } from "../types/client";
 import axiosRetry from "axios-retry";
 import { WLEDJSONAll } from "../types/wled-all";
 import { WLEDInfo } from "../types/wled-info";
 import { WLEDState, WLEDUpdatableState } from "../types/wled-state";
 import { WLEDEffects } from "../types/wled-effects";
 import { WLEDPalettes } from "../types/wled-palettes";
+import EventEmitter from "events";
 
-class client {
+class client extends EventEmitter {
   private axiosInstance: AxiosInstance;
-  public status: ClientStatus = 'disconnected';
-  public info: WLEDInfo | {} = {};
-  public state: WLEDState | {} = {};
-  public effects: WLEDEffects | [] = [];
-  public palettes: WLEDPalettes | [] = [];
+  private _status: ClientStatus = "disconnected";
+  private _info: WLEDInfo | {} = {};
+  private _state: WLEDState | {} = {};
+  private _effects: WLEDEffects | [] = [];
+  private _palettes: WLEDPalettes | [] = [];
 
-  constructor({ baseUrl, ssl = false, port = 80 }: ClientConstructor) {
+  constructor({ baseUrl, ssl = false, port = 80 }: ClientOptions) {
+    super();
     this.axiosInstance = axios.create({
-      baseURL: `${ssl ? "https" : "http"}://${baseUrl}:${port}/json`,
+      baseURL: `${ssl ? "https" : "http"}://${baseUrl}:${
+        port
+      }/json`,
     });
     axiosRetry(this.axiosInstance, { retries: 3 });
   }
 
-  public async init(): Promise<ClientStatus> {
+  /* -------------------------------------------------------------------------- */
+  /*                                 CONNECTION                                 */
+  /* -------------------------------------------------------------------------- */
+  public async connect() {
     try {
-      if (this.status === 'connected') {
-        return Promise.resolve(this.status);
+      if (this._status === "connected") {
+        this.emit("statusChange");
       }
       await this.getAll();
-      this.status = 'connected';
-      return Promise.resolve(this.status);
+      this._status = "connected";
+      this.emit("statusChange");
     } catch (error) {
-      this.status = 'failed';
-      return Promise.resolve(this.status);
+      this._status = "failed";
+      this.emit("statusChange");
     }
   }
 
-  public async getAll(config?: AxiosRequestConfig): Promise<WLEDJSONAll> {
+  public async disconnect() {
+    this._status = "disconnected";
+    this.emit("statusChange");
+  }
+
+  public get status() {
+    return this._status;
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*                                   GET ALL                                  */
+  /* -------------------------------------------------------------------------- */
+  public async getAll(config?: AxiosRequestConfig) {
     try {
-      const response: AxiosResponse<WLEDJSONAll> = await this.axiosInstance.get('/', config);
-      this.info = response.data.info;
-      this.state = response.data.state;
-      this.effects = response.data.effects;
-      this.palettes = response.data.palettes;
-      return response.data;
+      const response: AxiosResponse<WLEDJSONAll> = await this.axiosInstance.get(
+        "/",
+        config
+      );
+      this._info = response.data.info;
+      this._state = response.data.state;
+      this._effects = response.data.effects;
+      this._palettes = response.data.palettes;
+      this.emit("infoChange");
+      this.emit("stateChange");
+      this.emit("effectsChange");
+      this.emit("palettesChange");
     } catch (error) {
       this.handleError(error);
       throw error;
     }
   }
 
-  public async getInfo(config?: AxiosRequestConfig): Promise<WLEDInfo> {
+  /* -------------------------------------------------------------------------- */
+  /*                                    INFO                                    */
+  /* -------------------------------------------------------------------------- */
+  public async getInfo(config?: AxiosRequestConfig) {
     try {
-      const response: AxiosResponse<WLEDInfo> = await this.axiosInstance.get('/info', config);
-      this.info = response.data;
-      return response.data;
+      const response: AxiosResponse<WLEDInfo> = await this.axiosInstance.get(
+        "/info",
+        config
+      );
+      this._info = response.data;
+      this.emit("infoChange");
     } catch (error) {
       this.handleError(error);
       throw error;
     }
   }
 
-  public async getState(config?: AxiosRequestConfig): Promise<WLEDState> {
+  public get info() {
+    return this._info;
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*                                    STATE                                   */
+  /* -------------------------------------------------------------------------- */
+  public async getState(config?: AxiosRequestConfig) {
     try {
-      const response: AxiosResponse<WLEDState> = await this.axiosInstance.get('/state', config);
-      this.state = response.data;
-      return response.data;
+      const response: AxiosResponse<WLEDState> = await this.axiosInstance.get(
+        "/state",
+        config
+      );
+      this._state = response.data;
+      this.emit("stateChange");
     } catch (error) {
       this.handleError(error);
       throw error;
     }
   }
 
-  public async setState(newState: WLEDUpdatableState, config?: AxiosRequestConfig): Promise<WLEDState> {
+  public async setState(
+    newState: WLEDUpdatableState,
+    config?: AxiosRequestConfig
+  ) {
     try {
-      const response: AxiosResponse<WLEDState> = await this.axiosInstance.post('/state', newState, config);
-      const updatedState = { ...this.state, ...newState };
-      this.state = updatedState;
-      return updatedState;
+      const response: AxiosResponse<WLEDState> = await this.axiosInstance.post(
+        "/state",
+        newState,
+        config
+      );
+      const updatedState = { ...this._state, ...newState };
+      this._state = updatedState;
+      this.emit("stateChange");
     } catch (error) {
       this.handleError(error);
       throw error;
     }
   }
 
-  public async getEffects(config?: AxiosRequestConfig): Promise<WLEDEffects> {
+  public get state() {
+    return this._state;
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*                                   EFFECTS                                  */
+  /* -------------------------------------------------------------------------- */
+  public async getEffects(config?: AxiosRequestConfig) {
     try {
-      const response: AxiosResponse<WLEDEffects> = await this.axiosInstance.get('/eff', config);
-      this.effects = response.data;
-      return response.data;
+      const response: AxiosResponse<WLEDEffects> = await this.axiosInstance.get(
+        "/eff",
+        config
+      );
+      this._effects = response.data;
+      this.emit("effectsChange");
     } catch (error) {
       this.handleError(error);
       throw error;
     }
   }
 
-  public async getPalettes(config?: AxiosRequestConfig): Promise<WLEDPalettes> {
+  public get effects() {
+    return this._effects;
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*                                  PALETTES                                  */
+  /* -------------------------------------------------------------------------- */
+  public async getPalettes(config?: AxiosRequestConfig) {
     try {
-      const response: AxiosResponse<WLEDPalettes> = await this.axiosInstance.get('/pal', config);
-      this.palettes = response.data;
-      return response.data;
+      const response: AxiosResponse<WLEDPalettes> =
+        await this.axiosInstance.get("/pal", config);
+      this._palettes = response.data;
+      this.emit("palettesChange");
     } catch (error) {
       this.handleError(error);
       throw error;
     }
   }
 
+  public get palettes() {
+    return this._palettes;
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*                                ERROR HANDLER                               */
+  /* -------------------------------------------------------------------------- */
   private handleError(error: any) {
     console.error("API Error:", error.message);
   }

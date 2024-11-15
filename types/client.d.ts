@@ -5,9 +5,9 @@ import client from "../src/client";
 export type WLEDClient = typeof client;
 
 /* -------------------------------------------------------------------------- */
-/*                              ClientConstructor                             */
+/*                                ClientOptions                               */
 /* -------------------------------------------------------------------------- */
-export type ClientConstructor = {
+export type ClientOptions = {
   baseUrl: string;
   ssl?: boolean;
   port?: number;
