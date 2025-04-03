@@ -101,7 +101,6 @@ class client extends EventEmitter {
         },
       });
       await this.getInfo();
-      this.emit("infoChange");
     } catch (error) {
       console.error("Error renaming:", error);
     }
