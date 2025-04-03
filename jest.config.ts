@@ -1,6 +1,6 @@
 export default {
   preset: "ts-jest",
-  testEnvironment: "node",
+  testEnvironment: "jsdom",
   collectCoverage: true,
   collectCoverageFrom: [
     "src/**/*.ts", // Collect coverage from all `.ts` files in `src/`

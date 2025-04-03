@@ -40,6 +40,7 @@ class client extends EventEmitter {
     } catch (error) {
       this._status = "failed";
       this.emit("statusChange");
+      throw error;
     }
   }
 
@@ -137,12 +138,10 @@ class client extends EventEmitter {
         newState,
         config
       );
-      const updatedState = { ...this._state, ...newState };
-      this._state = updatedState;
+      this._state = response.data;
       this.emit("stateChange");
     } catch (error) {
       this.handleError(error);
-      throw error;
     }
   }
 
@@ -193,6 +192,7 @@ class client extends EventEmitter {
   /* -------------------------------------------------------------------------- */
   private handleError(error: any) {
     console.error("API Error:", error.message);
+    throw error;
   }
 }
 

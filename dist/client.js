@@ -32,6 +32,7 @@ class client extends EventEmitter {
         catch (error) {
             this._status = "failed";
             this.emit("statusChange");
+            throw error;
         }
     }
     async disconnect() {
@@ -111,13 +112,11 @@ class client extends EventEmitter {
     async setState(newState, config) {
         try {
             const response = await this._axiosInstance.post("/state", newState, config);
-            const updatedState = { ...this._state, ...newState };
-            this._state = updatedState;
+            this._state = response.data;
             this.emit("stateChange");
         }
         catch (error) {
             this.handleError(error);
-            throw error;
         }
     }
     get state() {
@@ -162,6 +161,7 @@ class client extends EventEmitter {
     /* -------------------------------------------------------------------------- */
     handleError(error) {
         console.error("API Error:", error.message);
+        throw error;
     }
 }
 export default client;
